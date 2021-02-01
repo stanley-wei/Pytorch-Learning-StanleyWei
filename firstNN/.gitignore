@@ -1,0 +1,7 @@
+*.pth
+*.jpg
+*.txt
+**/.DS_Store
+*demo.py
+saves/**
+data/**
