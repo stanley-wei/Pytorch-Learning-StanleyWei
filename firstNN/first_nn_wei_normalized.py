@@ -19,13 +19,9 @@ import cv2
 
 fout = open('testwei.txt', 'w')
 
-# File location to save to or load from
 MODEL_SAVE_PATH = './cifar_net.pth'
-# Set to zero to use above saved model
 TRAIN_EPOCHS = 25
-# If you want to save the model at every epoch in a subfolder set to 'True'
 SAVE_EPOCHS = False
-# If you just want to save the final output in current folder, set to 'True'
 SAVE_LAST = True
 BATCH_SIZE_TRAIN = 4
 BATCH_SIZE_TEST = 4
@@ -41,38 +37,17 @@ class Net(nn.Module):
 
     def __init__(self):
         super(Net, self).__init__()
-        # Input: 32 x 32 x 3 = 3072
-
-        # Kernel: 7 x 7, Stride: (1, 1), output 6 layers, padding = 0 px
-        # So Output size = 26 x 26 x 6 = 4056
         self.conv1 = nn.Conv2d(3, 6, 7)
         self.conv2 = nn.Conv2d(6, 12, 5)
         self.conv3 = nn.Conv2d(12, 24, 5)
 
         self.pool1 = nn.MaxPool2d(2, 2)
 
-        # The convolution below made sense as a third convolution with:
-        # conv1 = 7x7, S=1, P=0, Layers = 6
-        # conv2 = 3x3, S=1, P=0, Layers = 16
-        # self.conv3 = nn.Conv2d(16, 16, 3)
-
-        # Experiment with a couple of different Dropout layers
-        # These will not change input/output sizes.
         self.dropout10 = nn.Dropout(p=0.1)
         self.dropout20 = nn.Dropout(p=0.2)
         self.dropout50 = nn.Dropout(p=0.5)
 
-        # Activation function to use
         self.activation = F.leaky_relu
-
-        # Batch Normalization functions
-        # self.batchNormalization6 = nn.BatchNorm2d(6)
-        # self.batchNormalization16 = nn.BatchNorm2d(16)
-        # self.batchNormalization120 = nn.BatchNorm1d(120)
-        # self.batchNormalization84 = nn.BatchNorm1d(84)
-
-        # Repeat MaxPool2d
-        # Then Output size = 7 x 7 x 12 = 588
 
         self.fc1 = nn.Linear(1944, 486)
         self.fc2 = nn.Linear(486, 81)
@@ -86,11 +61,9 @@ class Net(nn.Module):
         x = self.pool1(x)
         x = x.view(-1, 1944)
         x = self.activation(self.fc1(x))
-        # x = self.batchNormalization120(x)
         x = self.dropout10(x)
         x = self.activation(self.fc2(x))
         x = self.dropout20(x)
-        # x = self.batchNormalization84(x)
         x = self.activation(self.fc3(x))
         x = self.dropout50(x)
         x = self.fc4(x)
@@ -105,10 +78,6 @@ def imshow(img):
 print("[INFO] Loading Traning and Test Datasets.")
 print("[INFO] Loading Traning and Test Datasets.", file=fout)
 
-# transform = transforms.Compose([
-#         transforms.ToTensor(),
-#         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-#     ])
 transform = transforms.ToTensor()
 trainset = torchvision.datasets.CIFAR10(root = './data', train = True,
     download = True, transform = transform)
@@ -124,14 +93,7 @@ print("[INFO] Done loading data.", file=fout)
 
 classes = ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
-# trainiter = iter(trainloader)
-# images, labels = trainiter.next()
-#
-# print('  '.join(f"{classes[labels[j]]}" for j in range(4)))
-# imshow(torchvision.utils.make_grid(images))
-
 net = Net()
-# net.to(device)
 print("Network:", net)
 print("Network:", net, file=fout)
 
@@ -159,7 +121,6 @@ for epoch in range(TRAIN_EPOCHS):
 
         running_loss += loss.item()
         if i % 500 == 499:
-            # print(f"Epoch: {epoch + 1}, Mini-Batches Processed: {i + 1:5}, Loss: {running_loss/2000:3.5}")
             print(f"Epoch: {epoch + 1}, Mini-Batches Processed: {i + 1:5}, Loss: {running_loss/2000:3.5}", file=fout, flush=True)
             running_loss = 0.0
 
@@ -172,10 +133,8 @@ for epoch in range(TRAIN_EPOCHS):
     total = 0
     with torch.no_grad():
         for data in trainloader:
-            # images, labels = data[0].to(device), data[1].to(device)
             images, labels = data
             outputs = net(images)
-            # For overall accuracy
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
@@ -185,10 +144,8 @@ for epoch in range(TRAIN_EPOCHS):
     total = 0
     with torch.no_grad():
         for data in testloader:
-            # images, labels = data[0].to(device), data[1].to(device)
             images, labels = data
             outputs = net(images)
-            # For overall accuracy
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
@@ -206,32 +163,17 @@ if TRAIN_EPOCHS:
 else:
     net.load_state_dict(torch.load(MODEL_SAVE_PATH))
 
-# testiter = iter(testloader)
-# images, labels = testiter.next()
-#
-# print('Ground Truth:',' '.join(f"{classes[labels[j]]:5}" for j in range(4)))
-#
-# outputs = net(images)
-#
-# _, predicted = torch.max(outputs, 1)
-#
-# print('Predicted:',' '.join(f"{classes[predicted[j]]:5}" for j in range(4)))
-# imshow(torchvision.utils.make_grid(images))
-
 correct = 0
 total = 0
 class_correct = list(0. for i in range(10))
 class_total = list(0. for i in range(10))
 with torch.no_grad():
     for data in testloader:
-        # images, labels = data[0].to(device), data[1].to(device)
         images, labels = data
         outputs = net(images)
-        # For overall accuracy
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
-        # For class-by-class accuracy
         _, predicted = torch.max(outputs, 1)
         c = (predicted == labels).squeeze()
         for i in range(BATCH_SIZE_TEST):
@@ -253,17 +195,3 @@ now = process_time()
 print(f"[TIMER] Total Process Time: {now - start:.8} seconds")
 print(f"[TIMER] Total Process Time: {now - start:.8} seconds", file=fout, flush=True)
 fout.close()
-
-# print(images)
-
-# sj = cv2.imread('Serena.jpg')
-# sj = cv2.resize(sj, (32, 32), interpolation = cv2.INTER_AREA)
-# tmp = np.zeros((1, sj.shape[2], sj.shape[0], sj.shape[0]), dtype=float)
-# for i, row in enumerate(sj):
-#     for j, col in enumerate(row):
-#         for k, entry in enumerate(col):
-#             tmp[0][k][i][j] = entry/255.0
-# sjTensor = torch.Tensor(tmp)
-# outputs = net(sjTensor)
-# _, predicted = torch.max(outputs, 1)
-# print(classes[predicted])

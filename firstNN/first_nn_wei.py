@@ -19,13 +19,9 @@ import cv2
 
 fout = open('testwei.txt', 'w')
 
-# File location to save to or load from
 MODEL_SAVE_PATH = './cifar_net.pth'
-# Set to zero to use above saved model
 TRAIN_EPOCHS = 50
-# If you want to save the model at every epoch in a subfolder set to 'True'
 SAVE_EPOCHS = False
-# If you just want to save the final output in current folder, set to 'True'
 SAVE_LAST = True
 BATCH_SIZE_TRAIN = 4
 BATCH_SIZE_TEST = 4
@@ -41,49 +37,17 @@ class Net(nn.Module):
 
     def __init__(self):
         super(Net, self).__init__()
-        # Input: 32 x 32 x 3 = 3072
-
-        # Kernel: 7 x 7, Stride: (1, 1), output 6 layers, padding = 0 px
-        # So Output size = 26 x 26 x 6 = 4056
         self.conv1 = nn.Conv2d(3, 6, 7)
-
-        # Kernel: 2 x 2, Stride: (2, 2)
-        # So Output size = 13 x 13 x 6 = 1014
         self.pool2 = nn.MaxPool2d(2, 2)
-
-        # For trying out 3 x 3 kernel, Stride: (3, 3)
-        # self.pool3 = nn.MaxPool2d(3, 3)
-
-        # Kernel: 5 x 5, Stride: (1, 1), output 12 layers, padding = 0 px
-        # So output size = 9 x 9 x 12 = 972
         self.conv2 = nn.Conv2d(6, 12, 5)
-
-        #Kernel: 3x3, Stride: (1, 1)
-        #So Output size = 7 * 7 * 12 = 588
         self.pool3 = nn.MaxPool2d(3, 1)
-
-        # The convolution below made sense as a third convolution with:
-        # conv1 = 7x7, S=1, P=0, Layers = 6
-        # conv2 = 3x3, S=1, P=0, Layers = 16
-        # self.conv3 = nn.Conv2d(16, 16, 3)
-
-        # Experiment with a couple of different Dropout layers
-        # These will not change input/output sizes.
-        # self.dropout10 = nn.Dropout(p=0.1)
-        # self.dropout20 = nn.Dropout(p=0.2)
         self.dropout50 = nn.Dropout(p=0.5)
-
-        # Activation function to use
         self.activation = F.relu
 
-        # Batch Normalization functions
         # self.batchNormalization6 = nn.BatchNorm2d(6)
         # self.batchNormalization16 = nn.BatchNorm2d(16)
         # self.batchNormalization120 = nn.BatchNorm1d(120)
         # self.batchNormalization84 = nn.BatchNorm1d(84)
-
-        # Repeat MaxPool2d
-        # Then Output size = 7 x 7 x 12 = 588
 
         self.fc1 = nn.Linear(588, 120)
         self.fc2 = nn.Linear(120, 84)
@@ -186,7 +150,6 @@ for epoch in range(TRAIN_EPOCHS):
             # images, labels = data[0].to(device), data[1].to(device)
             images, labels = data
             outputs = net(images)
-            # For overall accuracy
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
@@ -199,7 +162,6 @@ for epoch in range(TRAIN_EPOCHS):
             # images, labels = data[0].to(device), data[1].to(device)
             images, labels = data
             outputs = net(images)
-            # For overall accuracy
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
@@ -264,8 +226,6 @@ now = process_time()
 print(f"[TIMER] Total Process Time: {now - start:.8} seconds")
 print(f"[TIMER] Total Process Time: {now - start:.8} seconds", file=fout, flush=True)
 fout.close()
-
-# print(images)
 
 # sj = cv2.imread('Serena.jpg')
 # sj = cv2.resize(sj, (32, 32), interpolation = cv2.INTER_AREA)
